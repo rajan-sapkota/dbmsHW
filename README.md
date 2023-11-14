@@ -1,2 +1,0 @@
-# dbmsHW
-accessing the database
