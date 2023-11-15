@@ -53,7 +53,7 @@ public class EmployeeSearchFrame extends JFrame {
 	public EmployeeSearchFrame() {
 		setTitle("Search Employee");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 450, 347);
+		setBounds(500, 500, 450, 347);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		
@@ -77,11 +77,11 @@ public class EmployeeSearchFrame extends JFrame {
 		 */
 		btnDBFill.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				String[] dept = {"Headquarters", "Reorganization"};	
+				String[] dept = {"Headquarters", "Reorganization", "ULM"};	
 				for(int i = 0; i < dept.length; i++) {
 					department.addElement(dept[i]);
 				}
-				String[] prj = {"ProdoctX", "ProductY", "ProductZ"};
+				String[] prj = {"A", "B", "C", "D","E", "F", "G", "H"};
 				for(int j = 0; j < prj.length; j++) {
 					project.addElement(prj[j]);
 				}
@@ -89,7 +89,7 @@ public class EmployeeSearchFrame extends JFrame {
 			}
 		});
 		
-		btnDBFill.setFont(new Font("Times New Roman", Font.BOLD, 12));
+		btnDBFill.setFont(new Font("Times New Roman", Font.BOLD, 12));// the fill button
 		btnDBFill.setBounds(307, 19, 68, 23);
 		contentPane.add(btnDBFill);
 		
@@ -103,11 +103,19 @@ public class EmployeeSearchFrame extends JFrame {
 		lblProject.setBounds(255, 63, 47, 14);
 		contentPane.add(lblProject);
 		
+
+		//initializing the scroll for the projectList
+		JScrollPane projectScrollPane = new JScrollPane();
+		projectScrollPane.setBounds(225, 84, 150, 50);   //(x, y, width, height)
+		contentPane.add(projectScrollPane);
+
+
 		lstProject = new JList<String>(new DefaultListModel<String>());
 		lstProject.setFont(new Font("Tahoma", Font.PLAIN, 12));
 		lstProject.setModel(project);
 		lstProject.setBounds(225, 84, 150, 42);
 		contentPane.add(lstProject);
+		projectScrollPane.setViewportView(lstProject);
 		
 		JCheckBox chckbxNotDept = new JCheckBox("Not");
 		chckbxNotDept.setBounds(71, 133, 59, 23);
@@ -117,11 +125,17 @@ public class EmployeeSearchFrame extends JFrame {
 		chckbxNotProject.setBounds(270, 133, 59, 23);
 		contentPane.add(chckbxNotProject);
 		
+		//initializing the scroll for the projectList
+		JScrollPane departmentScrollPane = new JScrollPane();
+		departmentScrollPane.setBounds(36, 84, 172, 50);   //(x, y, width, height)
+		contentPane.add(departmentScrollPane);
+
 		lstDepartment = new JList<String>(new DefaultListModel<String>());
 		lstDepartment.setBounds(36, 84, 172, 40);
 		contentPane.add(lstDepartment);
 		lstDepartment.setFont(new Font("Tahoma", Font.PLAIN, 12));
 		lstDepartment.setModel(department);
+		departmentScrollPane.setViewportView(lstDepartment);
 		
 		JLabel lblEmployee = new JLabel("Employee");
 		lblEmployee.setFont(new Font("Times New Roman", Font.BOLD, 12));
@@ -131,7 +145,7 @@ public class EmployeeSearchFrame extends JFrame {
 		JButton btnSearch = new JButton("Search");
 		btnSearch.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				textAreaEmployee.setText("John Smith\nFranklin Wong");
+				textAreaEmployee.setText("John Smith\nFranklin Wong\nRajan\nRam"); //insert query here
 			}
 		});
 		btnSearch.setBounds(80, 276, 89, 23);
@@ -149,5 +163,9 @@ public class EmployeeSearchFrame extends JFrame {
 		textAreaEmployee = new JTextArea();
 		textAreaEmployee.setBounds(36, 197, 339, 68);
 		contentPane.add(textAreaEmployee);
+		JScrollPane employeeList = new JScrollPane();
+		employeeList.setBounds(36, 197, 339, 40);
+		contentPane.add(employeeList);
+		employeeList.setViewportView(textAreaEmployee);
 	}
 }
