@@ -17,6 +17,10 @@ import javax.swing.JButton;
 import javax.swing.JList;
 import javax.swing.JCheckBox;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.ConnectionBuilder;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.awt.event.ActionEvent;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -45,6 +49,24 @@ public class EmployeeSearchFrame extends JFrame {
 				}
 			}
 		});
+		try {
+			Class.forName("com.mysql.jdbc.Driver");
+			try {
+				Connection connection = DriverManager.getConnection("jdbc:mysql://cis-lonsmith-student2.ccr8ibhqw8qf.us-east-2.rds.amazonaws.com/COMPANY?useSSL=false", "sapkotara", "abc123");
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				System.out.println("this is the catch of connection meaning the class is working but problem in conection");
+				System.out.println(e);
+				e.printStackTrace();
+			}
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			System.out.println("this is the catch of class meaning error aleready in first class");
+			//System.out.println(e);
+			e.printStackTrace();
+		}
+		
+		
 	}
 
 	/**
