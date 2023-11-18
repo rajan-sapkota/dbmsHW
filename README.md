@@ -6,10 +6,11 @@ This project contains code for searching the data of employee working on the req
 ## Installation
 1. Clone the repository.
 
-[!IMPORTANT]
-2. Use openVPN to connect to the ULM server. This step is important to access database.
+> [!IMPORTANT]
+> 2. Use openVPN to connect to the ULM server. This step is important to access database.
 
-** To connect to the ULM server, go to [this website](openvpn.ulm.edu) and download the corresonding file that you need to run on your platform **
+> [!TIP]
+> ** To connect to the ULM server, go to [this website](https://openvpn.ulm.edu) and download the corresonding file that you need to run on your platform **
 
 
 ## Usage
