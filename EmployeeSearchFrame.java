@@ -18,8 +18,11 @@ import javax.swing.JList;
 import javax.swing.JCheckBox;
 import java.awt.event.ActionListener;
 import java.sql.Connection;
+import java.sql.Statement;
 import java.sql.ConnectionBuilder;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.awt.event.ActionEvent;
 import javax.swing.JScrollPane;
@@ -99,17 +102,39 @@ public class EmployeeSearchFrame extends JFrame {
 		 */
 		btnDBFill.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				String[] dept = {"Headquarters", "Reorganization", "ULM"};	
-				for(int i = 0; i < dept.length; i++) {
-					department.addElement(dept[i]);
+				department.clear(); // Clear existing department list
+				project.clear();    // Clear existing project list
+		
+				String databaseName = txtDatabase.getText().trim();
+		
+				try (Connection connection = DriverManager.getConnection(
+						"jdbc:mysql://cis-lonsmith-student2.ccr8ibhqw8qf.us-east-2.rds.amazonaws.com/" + databaseName + "?useSSL=false",
+						"sapkotara",
+						"abc123");
+					 Statement stmt = connection.createStatement()) {
+		
+					// Fetch department names
+					ResultSet rsDept = stmt.executeQuery("SELECT Dname FROM DEPARTMENT");
+					while (rsDept.next()) {
+						department.addElement(rsDept.getString("Dname"));
+					}
+					rsDept.close();
+		
+					// Fetch project names
+					ResultSet rsProj = stmt.executeQuery("SELECT Pname FROM PROJECT");
+					while (rsProj.next()) {
+						project.addElement(rsProj.getString("Pname"));
+					}
+					rsProj.close();
+		
+				} catch (SQLException ex) {
+					ex.printStackTrace();
+					// Ideally, implement better exception handling
 				}
-				String[] prj = {"A", "B", "C", "D","E", "F", "G", "H"};
-				for(int j = 0; j < prj.length; j++) {
-					project.addElement(prj[j]);
-				}
-				
 			}
 		});
+		
+		
 		
 		btnDBFill.setFont(new Font("Times New Roman", Font.BOLD, 12));// the fill button
 		btnDBFill.setBounds(307, 19, 68, 23);
@@ -167,9 +192,49 @@ public class EmployeeSearchFrame extends JFrame {
 		JButton btnSearch = new JButton("Search");
 		btnSearch.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				textAreaEmployee.setText("John Smith\nFranklin Wong\nRajan\nRam"); //insert query here
+				String databaseName = txtDatabase.getText().trim();
+				String selectedDept = (String) lstDepartment.getSelectedValue();
+				String selectedProj = (String) lstProject.getSelectedValue();
+		
+				// You'll need to adjust the query if multiple selections are allowed
+				String sql = "SELECT EMPLOYEE.Fname, EMPLOYEE.Minit, EMPLOYEE.Lname " +
+							 "FROM EMPLOYEE, DEPARTMENT, PROJECT, WORKS_ON " +
+							 "WHERE EMPLOYEE.Dno = DEPARTMENT.Dnumber " +
+							 "AND WORKS_ON.Pno = PROJECT.Pnumber " +
+							 "AND WORKS_ON.Essn = EMPLOYEE.Ssn " +
+							 "AND DEPARTMENT.Dname = ? " +
+							 "AND PROJECT.Pname = ?";
+		
+				try (Connection connection = DriverManager.getConnection(
+						"jdbc:mysql://cis-lonsmith-student2.ccr8ibhqw8qf.us-east-2.rds.amazonaws.com/" + databaseName + "?useSSL=false",
+						"sapkotara",
+						"abc123");
+					 PreparedStatement pstmt = connection.prepareStatement(sql)) {
+		
+					pstmt.setString(1, selectedDept);
+					pstmt.setString(2, selectedProj);
+		
+					ResultSet rs = pstmt.executeQuery();
+					StringBuilder employeeResults = new StringBuilder();
+					while (rs.next()) {
+						employeeResults.append(rs.getString("Fname"))
+									   .append(' ')
+									   .append(rs.getString("Minit"))
+									   .append(". ")
+									   .append(rs.getString("Lname"))
+									   .append("\n");
+					}
+					textAreaEmployee.setText(employeeResults.toString());
+					rs.close();
+		
+				} catch (SQLException ex) {
+					ex.printStackTrace();
+					// Implement better exception handling
+				}
 			}
 		});
+		
+
 		btnSearch.setBounds(80, 276, 89, 23);
 		contentPane.add(btnSearch);
 		
