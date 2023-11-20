@@ -193,17 +193,21 @@ public class EmployeeSearchFrame extends JFrame {
 		btnSearch.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String databaseName = txtDatabase.getText().trim();
-				String selectedDept = (String) lstDepartment.getSelectedValue();
-				String selectedProj = (String) lstProject.getSelectedValue();
+				String selectedDept = lstDepartment.getSelectedValue(); // Get the selected department
+				String selectedProj = lstProject.getSelectedValue();    // Get the selected project
 		
-				// You'll need to adjust the query if multiple selections are allowed
-				String sql = "SELECT EMPLOYEE.Fname, EMPLOYEE.Minit, EMPLOYEE.Lname " +
-							 "FROM EMPLOYEE, DEPARTMENT, PROJECT, WORKS_ON " +
-							 "WHERE EMPLOYEE.Dno = DEPARTMENT.Dnumber " +
-							 "AND WORKS_ON.Pno = PROJECT.Pnumber " +
-							 "AND WORKS_ON.Essn = EMPLOYEE.Ssn " +
-							 "AND DEPARTMENT.Dname = ? " +
-							 "AND PROJECT.Pname = ?";
+				if (selectedDept == null || selectedProj == null) {
+					System.out.println("Please select both a department and a project.");
+					return;
+				}
+		
+				String sql = "SELECT E.Fname, E.Minit, E.Lname " +
+							 "FROM EMPLOYEE E, DEPARTMENT D, PROJECT P, WORKS_ON W " +
+							 "WHERE E.Dno = D.Dnumber " +
+							 "AND W.Pno = P.Pnumber " +
+							 "AND W.Essn = E.Ssn " +
+							 "AND D.Dname = ? " +
+							 "AND P.Pname = ?";
 		
 				try (Connection connection = DriverManager.getConnection(
 						"jdbc:mysql://cis-lonsmith-student2.ccr8ibhqw8qf.us-east-2.rds.amazonaws.com/" + databaseName + "?useSSL=false",
@@ -214,6 +218,7 @@ public class EmployeeSearchFrame extends JFrame {
 					pstmt.setString(1, selectedDept);
 					pstmt.setString(2, selectedProj);
 		
+					System.out.println("Executing query: " + pstmt);
 					ResultSet rs = pstmt.executeQuery();
 					StringBuilder employeeResults = new StringBuilder();
 					while (rs.next()) {
@@ -224,12 +229,17 @@ public class EmployeeSearchFrame extends JFrame {
 									   .append(rs.getString("Lname"))
 									   .append("\n");
 					}
-					textAreaEmployee.setText(employeeResults.toString());
+					if (employeeResults.length() == 0) {
+						System.out.println("No results found.");
+						textAreaEmployee.setText("No results found.");
+					} else {
+						textAreaEmployee.setText(employeeResults.toString());
+					}
 					rs.close();
 		
 				} catch (SQLException ex) {
 					ex.printStackTrace();
-					// Implement better exception handling
+					System.out.println("SQL Exception: " + ex.getMessage());
 				}
 			}
 		});
