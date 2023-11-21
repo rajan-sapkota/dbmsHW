@@ -17,13 +17,12 @@ import javax.swing.JButton;
 import javax.swing.JList;
 import javax.swing.JCheckBox;
 import java.awt.event.ActionListener;
-import java.sql.Connection;
-import java.sql.ConnectionBuilder;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.awt.event.ActionEvent;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import java.util.Properties;
+import java.io.FileReader;
+import java.sql.*;
 
 public class EmployeeSearchFrame extends JFrame {
 
@@ -35,10 +34,15 @@ public class EmployeeSearchFrame extends JFrame {
 	private JList<String> lstProject;
 	private DefaultListModel<String> project = new DefaultListModel<String>();
 	private JTextArea textAreaEmployee;
+	static Connection con= null;
+	static String employees="";
+	private static String database;
+
 	/**
 	 * Launch the application.
+	 * @throws SQLException
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws SQLException {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -49,25 +53,52 @@ public class EmployeeSearchFrame extends JFrame {
 				}
 			}
 		});
+	}
+		public static String loadDatabase() throws SQLException{
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
-			try {
-				Connection connection = DriverManager.getConnection("jdbc:mysql://cis-lonsmith-student2.ccr8ibhqw8qf.us-east-2.rds.amazonaws.com/COMPANY?useSSL=false", "sapkotara", "abc123");
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				System.out.println("this is the catch of connection meaning the class is working but problem in conection");
-				System.out.println(e);
-				e.printStackTrace();
-			}
+			System.out.println("Your entered:"+database+"-Nospace\n");
+			String connectorString= "jdbc:mysql://cis-lonsmith-student2.ccr8ibhqw8qf.us-east-2.rds.amazonaws.com/"+database+"?useSSL=false&connectTimeout=5000";
+			System.out.println(connectorString);	
+			con = DriverManager.getConnection(connectorString, "sapkotara", "abc123");
+									
+				if(!con.isClosed())
+				{
+				System.out.println("connected");
+
+				Statement st= con.createStatement();
+				String query= "Select * from EMPLOYEE";
+				ResultSet result =st.executeQuery(query);
+
+				System.out.println("+------------------------+-------------------+");
+		System.out.println("|      Name              |       Hours       |");
+		System.out.println("+------------------------+-------------------+");
+String fullName="";
+		while (result.next()) {
+		    String firstName = result.getString("Fname");
+			System.out.println(firstName);
+		    String lastName = result.getString("Lname");
+		    String mInit= result.getString("Minit");
+		    //String hours= result.getString("Hours");
+		   fullName = firstName+" "+mInit+" "+ lastName;
+			System.out.println(fullName);
+			employees += fullName+"\n";
+		    System.out.println(employees);
+		    return fullName;
+		}
+
+
+				}
+				
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
-			System.out.println("this is the catch of class meaning error aleready in first class");
-			//System.out.println(e);
 			e.printStackTrace();
 		}
+		return employees;
 		
-		
+
 	}
+	
 
 	/**
 	 * Create the frame.
@@ -98,7 +129,19 @@ public class EmployeeSearchFrame extends JFrame {
 		 * departments and projects from your entered database name.
 		 */
 		btnDBFill.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
+				try {
+					database= txtDatabase.getText();
+					loadDatabase();
+					
+					
+				} catch (SQLException e1) {
+					// TODO Auto-generated catch block
+					System.out.println("\n!!!!!!!!!!!!!!INVALID DATABASE NAME!!!!!!!!!!!!!!");
+				}
+				System.out.println("\n\n YOu clicked fill button\n\n");
+				
 				String[] dept = {"Headquarters", "Reorganization", "ULM"};	
 				for(int i = 0; i < dept.length; i++) {
 					department.addElement(dept[i]);
@@ -167,7 +210,7 @@ public class EmployeeSearchFrame extends JFrame {
 		JButton btnSearch = new JButton("Search");
 		btnSearch.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				textAreaEmployee.setText("John Smith\nFranklin Wong\nRajan\nRam"); //insert query here
+				textAreaEmployee.setText(employees); //this is employee output
 			}
 		});
 		btnSearch.setBounds(80, 276, 89, 23);
@@ -191,3 +234,4 @@ public class EmployeeSearchFrame extends JFrame {
 		employeeList.setViewportView(textAreaEmployee);
 	}
 }
+	
