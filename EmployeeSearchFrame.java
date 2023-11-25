@@ -5,24 +5,31 @@
  */
 
 import java.awt.EventQueue;
-
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
-import javax.swing.JLabel;
 import java.awt.Font;
-import javax.swing.JTextField;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Properties;
+
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
-import javax.swing.JList;
 import javax.swing.JCheckBox;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import java.util.Properties;
-import java.io.FileReader;
-import java.sql.*;
+import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
 
 public class EmployeeSearchFrame extends JFrame {
 
@@ -34,15 +41,10 @@ public class EmployeeSearchFrame extends JFrame {
 	private JList<String> lstProject;
 	private DefaultListModel<String> project = new DefaultListModel<String>();
 	private JTextArea textAreaEmployee;
-	static Connection con= null;
-	static String employees="";
-	private static String database;
-
 	/**
 	 * Launch the application.
-	 * @throws SQLException
 	 */
-	public static void main(String[] args) throws SQLException {
+	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -53,52 +55,44 @@ public class EmployeeSearchFrame extends JFrame {
 				}
 			}
 		});
-	}
-		public static String loadDatabase() throws SQLException{
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
-			System.out.println("Your entered:"+database+"-Nospace\n");
-			String connectorString= "jdbc:mysql://cis-lonsmith-student2.ccr8ibhqw8qf.us-east-2.rds.amazonaws.com/"+database+"?useSSL=false&connectTimeout=5000";
-			System.out.println(connectorString);	
-			con = DriverManager.getConnection(connectorString, "sapkotara", "abc123");
-									
-				if(!con.isClosed())
-				{
-				System.out.println("connected");
+			try {
+				FileReader reader = new FileReader("database.props");
+            Properties props = new Properties();
+            props.load(reader);
 
-				Statement st= con.createStatement();
-				String query= "Select * from EMPLOYEE";
-				ResultSet result =st.executeQuery(query);
+            String dbUrl = props.getProperty("db.url");
+            String dbUser = props.getProperty("db.user");
+            String dbPassword = props.getProperty("db.password");
+            String dbDriver = props.getProperty("db.driver");
 
-				System.out.println("+------------------------+-------------------+");
-		System.out.println("|      Name              |       Hours       |");
-		System.out.println("+------------------------+-------------------+");
-String fullName="";
-		while (result.next()) {
-		    String firstName = result.getString("Fname");
-			System.out.println(firstName);
-		    String lastName = result.getString("Lname");
-		    String mInit= result.getString("Minit");
-		    //String hours= result.getString("Hours");
-		   fullName = firstName+" "+mInit+" "+ lastName;
-			System.out.println(fullName);
-			employees += fullName+"\n";
-		    System.out.println(employees);
-		    return fullName;
-		}
-
-
-				}
-				
+            Class.forName(dbDriver);
+            Connection connection = DriverManager.getConnection(dbUrl, dbUser, dbPassword);
+			} 
+			catch (FileNotFoundException e) {
+            e.printStackTrace();
+            System.out.println("The database configuration file was not found.");
+			}
+			
+			catch (SQLException e) {
+				// TODO Auto-generated catch block
+				System.out.println("this is the catch of connection meaning the class is working but problem in conection");
+				System.out.println(e);
+				e.printStackTrace();
+			}
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
+			System.out.println("this is the catch of class meaning error aleready in first class");
+			//System.out.println(e);
 			e.printStackTrace();
 		}
-		return employees;
+		catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error reading the database configuration file.");}
 		
-
+		
 	}
-	
 
 	/**
 	 * Create the frame.
@@ -129,30 +123,40 @@ String fullName="";
 		 * departments and projects from your entered database name.
 		 */
 		btnDBFill.addActionListener(new ActionListener() {
-			@Override
 			public void actionPerformed(ActionEvent e) {
-				try {
-					database= txtDatabase.getText();
-					loadDatabase();
-					
-					
-				} catch (SQLException e1) {
-					// TODO Auto-generated catch block
-					System.out.println("\n!!!!!!!!!!!!!!INVALID DATABASE NAME!!!!!!!!!!!!!!");
+				department.clear(); // Clear existing department list
+				project.clear();    // Clear existing project list
+		
+				String databaseName = txtDatabase.getText().trim();
+		
+				try (Connection connection = DriverManager.getConnection(
+						"jdbc:mysql://cis-lonsmith-student2.ccr8ibhqw8qf.us-east-2.rds.amazonaws.com/" + databaseName + "?useSSL=false",
+						"sapkotara",
+						"abc123");
+					 Statement stmt = connection.createStatement()) {
+		
+					// Fetch department names
+					ResultSet rsDept = stmt.executeQuery("SELECT Dname FROM DEPARTMENT");
+					while (rsDept.next()) {
+						department.addElement(rsDept.getString("Dname"));
+					}
+					rsDept.close();
+		
+					// Fetch project names
+					ResultSet rsProj = stmt.executeQuery("SELECT Pname FROM PROJECT");
+					while (rsProj.next()) {
+						project.addElement(rsProj.getString("Pname"));
+					}
+					rsProj.close();
+		
+				} catch (SQLException ex) {
+					ex.printStackTrace();
+					// Ideally, implement better exception handling
 				}
-				System.out.println("\n\n YOu clicked fill button\n\n");
-				
-				String[] dept = {"Headquarters", "Reorganization", "ULM"};	
-				for(int i = 0; i < dept.length; i++) {
-					department.addElement(dept[i]);
-				}
-				String[] prj = {"A", "B", "C", "D","E", "F", "G", "H"};
-				for(int j = 0; j < prj.length; j++) {
-					project.addElement(prj[j]);
-				}
-				
 			}
 		});
+		
+		
 		
 		btnDBFill.setFont(new Font("Times New Roman", Font.BOLD, 12));// the fill button
 		btnDBFill.setBounds(307, 19, 68, 23);
@@ -210,9 +214,59 @@ String fullName="";
 		JButton btnSearch = new JButton("Search");
 		btnSearch.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				textAreaEmployee.setText(employees); //this is employee output
+				String databaseName = txtDatabase.getText().trim();
+				String selectedDept = lstDepartment.getSelectedValue(); // Get the selected department
+				String selectedProj = lstProject.getSelectedValue();    // Get the selected project
+		
+				if (selectedDept == null || selectedProj == null) {
+					System.out.println("Please select both a department and a project.");
+					return;
+				}
+		
+				String sql = "SELECT E.Fname, E.Minit, E.Lname " +
+							 "FROM EMPLOYEE E, DEPARTMENT D, PROJECT P, WORKS_ON W " +
+							 "WHERE E.Dno = D.Dnumber " +
+							 "AND W.Pno = P.Pnumber " +
+							 "AND W.Essn = E.Ssn " +
+							 "AND D.Dname = ? " +
+							 "AND P.Pname = ?";
+		
+				try (Connection connection = DriverManager.getConnection(
+						"jdbc:mysql://cis-lonsmith-student2.ccr8ibhqw8qf.us-east-2.rds.amazonaws.com/" + databaseName + "?useSSL=false",
+						"sapkotara",
+						"abc123");
+					 PreparedStatement pstmt = connection.prepareStatement(sql)) {
+		
+					pstmt.setString(1, selectedDept);
+					pstmt.setString(2, selectedProj);
+		
+					System.out.println("Executing query: " + pstmt);
+					ResultSet rs = pstmt.executeQuery();
+					StringBuilder employeeResults = new StringBuilder();
+					while (rs.next()) {
+						employeeResults.append(rs.getString("Fname"))
+									   .append(' ')
+									   .append(rs.getString("Minit"))
+									   .append(". ")
+									   .append(rs.getString("Lname"))
+									   .append("\n");
+					}
+					if (employeeResults.length() == 0) {
+						System.out.println("No results found.");
+						textAreaEmployee.setText("No results found.");
+					} else {
+						textAreaEmployee.setText(employeeResults.toString());
+					}
+					rs.close();
+		
+				} catch (SQLException ex) {
+					ex.printStackTrace();
+					System.out.println("SQL Exception: " + ex.getMessage());
+				}
 			}
 		});
+		
+
 		btnSearch.setBounds(80, 276, 89, 23);
 		contentPane.add(btnSearch);
 		
@@ -234,4 +288,3 @@ String fullName="";
 		employeeList.setViewportView(textAreaEmployee);
 	}
 }
-	
