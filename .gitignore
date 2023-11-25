@@ -1,3 +1,4 @@
 #ignore the class file
 *.class
 *.vscode
+database.props

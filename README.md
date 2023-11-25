@@ -8,18 +8,23 @@ This project contains code for searching the data of employee working on the req
 
 1. Clone the repository.
 
-> [!IMPORTANT] 2. Use openVPN to connect to the ULM server. This step is important to access database.
+> [!IMPORTANT] 
+> 2. Use openVPN to connect to the ULM server. This step is important to access database.
 
-> [!TIP] > ** To connect to the ULM server, go to [this website](https://openvpn.ulm.edu) and download the corresonding file that you need to run on your platform **
+> [!TIP]
+> ** To connect to the ULM server, go to [this website](https://openvpn.ulm.edu) and download the corresonding file that you need to run on your platform **
 
 ## Usage
 
 After cloning the repo, compile the java file
 Steps:
-
+1.
 ```bash
-1. javac EmployeeSearchFrame.java
-2. java -cp .:mysql-connector-java-5.1.48.jar EmployeeSearchFrame
+javac EmployeeSearchFrame.java
+```
+2.
+```bash
+java -cp .:mysql-connector-java-5.1.48.jar EmployeeSearchFrame
 ```
 
 ## Example usage:
