@@ -223,7 +223,7 @@ public class EmployeeSearchFrame extends JFrame {
 					return;
 				}
 		
-				String sql = "SELECT E.Fname, E.Minit, E.Lname " +
+				String sql = "SELECT DISTINCT E.Fname, E.Minit, E.Lname " +
 							 "FROM EMPLOYEE E, DEPARTMENT D, PROJECT P, WORKS_ON W " +
 							 "WHERE E.Dno = D.Dnumber " +
 							 "AND W.Pno = P.Pnumber " +
