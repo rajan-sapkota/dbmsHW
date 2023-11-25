@@ -55,41 +55,7 @@ public class EmployeeSearchFrame extends JFrame {
 				}
 			}
 		});
-		try {
-			Class.forName("com.mysql.jdbc.Driver");
-			try {
-				FileReader reader = new FileReader("database.props");
-            Properties props = new Properties();
-            props.load(reader);
-
-            String dbUrl = props.getProperty("db.url");
-            String dbUser = props.getProperty("db.user");
-            String dbPassword = props.getProperty("db.password");
-            String dbDriver = props.getProperty("db.driver");
-
-            Class.forName(dbDriver);
-            Connection connection = DriverManager.getConnection(dbUrl, dbUser, dbPassword);
-			} 
-			catch (FileNotFoundException e) {
-            e.printStackTrace();
-            System.out.println("The database configuration file was not found.");
-			}
-			
-			catch (SQLException e) {
-				// TODO Auto-generated catch block
-				System.out.println("this is the catch of connection meaning the class is working but problem in conection");
-				System.out.println(e);
-				e.printStackTrace();
-			}
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			System.out.println("this is the catch of class meaning error aleready in first class");
-			//System.out.println(e);
-			e.printStackTrace();
-		}
-		catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("Error reading the database configuration file.");}
+		
 		
 		
 	}
@@ -128,30 +94,49 @@ public class EmployeeSearchFrame extends JFrame {
 				project.clear();    // Clear existing project list
 		
 				String databaseName = txtDatabase.getText().trim();
-		
-				try (Connection connection = DriverManager.getConnection(
-						"jdbc:mysql://cis-lonsmith-student2.ccr8ibhqw8qf.us-east-2.rds.amazonaws.com/" + databaseName + "?useSSL=false",
-						"sapkotara",
-						"abc123");
-					 Statement stmt = connection.createStatement()) {
-		
-					// Fetch department names
-					ResultSet rsDept = stmt.executeQuery("SELECT Dname FROM DEPARTMENT");
-					while (rsDept.next()) {
-						department.addElement(rsDept.getString("Dname"));
+				try (FileReader reader = new FileReader("database.props")) {
+					Properties p = new Properties();
+					p.load(reader);
+					
+					String dbdriver = p.getProperty("db.driver");
+					
+					String dbuser = p.getProperty("db.user");
+					String dbpassword = p.getProperty("db.password");
+					String dburl = p.getProperty("db.url");
+					String dbURL = String.format(dburl, databaseName);
+   
+					try {
+						Class.forName(dbdriver);
+					} catch (ClassNotFoundException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
 					}
-					rsDept.close();
-		
-					// Fetch project names
-					ResultSet rsProj = stmt.executeQuery("SELECT Pname FROM PROJECT");
-					while (rsProj.next()) {
-						project.addElement(rsProj.getString("Pname"));
+					try(Connection connection  = DriverManager.getConnection(dbURL,
+									  dbuser, dbpassword);
+					
+						 Statement stmt = connection.createStatement()) {
+							System.out.println("this is the second connection");
+						// Fetch department names
+						ResultSet rsDept = stmt.executeQuery("SELECT Dname FROM DEPARTMENT");
+						while (rsDept.next()) {
+							department.addElement(rsDept.getString("Dname"));
+						}
+						rsDept.close();
+
+						// Fetch project names
+						ResultSet rsProj = stmt.executeQuery("SELECT Pname FROM PROJECT");
+						while (rsProj.next()) {
+							project.addElement(rsProj.getString("Pname"));
+						}
+						rsProj.close();
+
+					} catch (SQLException ex) {
+						ex.printStackTrace();
+						// Ideally, implement better exception handling
 					}
-					rsProj.close();
-		
-				} catch (SQLException ex) {
-					ex.printStackTrace();
-					// Ideally, implement better exception handling
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
 				}
 			}
 		});
@@ -283,7 +268,7 @@ public class EmployeeSearchFrame extends JFrame {
 		textAreaEmployee.setBounds(36, 197, 339, 68);
 		contentPane.add(textAreaEmployee);
 		JScrollPane employeeList = new JScrollPane();
-		employeeList.setBounds(36, 197, 339, 40);
+		employeeList.setBounds(36, 197, 339, 70);
 		contentPane.add(employeeList);
 		employeeList.setViewportView(textAreaEmployee);
 	}
