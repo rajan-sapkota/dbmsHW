@@ -18,11 +18,11 @@ This project contains code for searching the data of employee working on the req
 
 After cloning the repo, compile the java file
 Steps:
-1.
+
 ```bash
 javac EmployeeSearchFrame.java
 ```
-2.
+
 ```bash
 java -cp .:mysql-connector-java-5.1.48.jar EmployeeSearchFrame
 ```
