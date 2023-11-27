@@ -18,6 +18,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -34,6 +35,8 @@ public class EmployeeSearchFrame extends JFrame {
     private JList<String> lstProject;
     private DefaultListModel<String> project = new DefaultListModel<String>();
     private JTextArea textAreaEmployee;
+	JCheckBox chckbxNotProject;
+	JCheckBox chckbxNotDept;
 
     public static void main(String[] args) {
         EventQueue.invokeLater(new Runnable() {
@@ -70,48 +73,55 @@ public class EmployeeSearchFrame extends JFrame {
 
         JButton btnDBFill = new JButton("Fill");
         btnDBFill.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                department.clear();
-                project.clear();
+    public void actionPerformed(ActionEvent e) {
+        department.clear();
+        project.clear();
+		clearfields();
+                // chckbxNotDept.setSelected(false);
+                // chckbxNotProject.setSelected(false);
 
-                String databaseName = txtDatabase.getText().trim();
-                try (FileReader reader = new FileReader("database.props")) {
-                    Properties p = new Properties();
-                    p.load(reader);
+        String databaseName = txtDatabase.getText().trim();
+        try (FileReader reader = new FileReader("database.props")) {
+            Properties p = new Properties();
+            p.load(reader);
 
-                    String dbdriver = p.getProperty("db.driver");
-                    String dbuser = p.getProperty("db.user");
-                    String dbpassword = p.getProperty("db.password");
-                    String dburl = p.getProperty("db.url");
-                    String dbURL = String.format(dburl, databaseName);
+            String dbdriver = p.getProperty("db.driver");
+            String dbuser = p.getProperty("db.user");
+            String dbpassword = p.getProperty("db.password");
+            String dburl = p.getProperty("db.url");
+            String dbURL = String.format(dburl, databaseName);
 
-                    try {
-                        Class.forName(dbdriver);
-                    } catch (ClassNotFoundException e1) {
-                        e1.printStackTrace();
-                    }
-                    try (Connection connection = DriverManager.getConnection(dbURL, dbuser, dbpassword);
-                         Statement stmt = connection.createStatement()) {
-                        ResultSet rsDept = stmt.executeQuery("SELECT Dname FROM DEPARTMENT");
-                        while (rsDept.next()) {
-                            department.addElement(rsDept.getString("Dname"));
-                        }
-                        rsDept.close();
-
-                        ResultSet rsProj = stmt.executeQuery("SELECT Pname FROM PROJECT");
-                        while (rsProj.next()) {
-                            project.addElement(rsProj.getString("Pname"));
-                        }
-                        rsProj.close();
-
-                    } catch (SQLException ex) {
-                        ex.printStackTrace();
-                    }
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
+            try {
+                Class.forName(dbdriver);
+            } catch (ClassNotFoundException e1) {
+                e1.printStackTrace();
             }
-        });
+            try (Connection connection = DriverManager.getConnection(dbURL, dbuser, dbpassword);
+                 Statement stmt = connection.createStatement()) {
+                ResultSet rsDept = stmt.executeQuery("SELECT Dname FROM DEPARTMENT");
+                while (rsDept.next()) {
+                    department.addElement(rsDept.getString("Dname"));
+                }
+                rsDept.close();
+
+                ResultSet rsProj = stmt.executeQuery("SELECT Pname FROM PROJECT");
+                while (rsProj.next()) {
+                    project.addElement(rsProj.getString("Pname"));
+                }
+                rsProj.close();
+
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+                showDatabaseNotFoundError();
+            }
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+    }
+});
+
+
+
 
         btnDBFill.setFont(new Font("Times New Roman", Font.BOLD, 12));
         btnDBFill.setBounds(307, 19, 68, 23);
@@ -138,11 +148,11 @@ public class EmployeeSearchFrame extends JFrame {
         contentPane.add(lstProject);
         projectScrollPane.setViewportView(lstProject);
 
-        JCheckBox chckbxNotDept = new JCheckBox("Not");
+        chckbxNotDept = new JCheckBox("Not");
         chckbxNotDept.setBounds(71, 133, 59, 23);
         contentPane.add(chckbxNotDept);
 
-        JCheckBox chckbxNotProject = new JCheckBox("Not");
+        chckbxNotProject = new JCheckBox("Not");
         chckbxNotProject.setBounds(270, 133, 59, 23);
         contentPane.add(chckbxNotProject);
 
@@ -223,8 +233,9 @@ public class EmployeeSearchFrame extends JFrame {
                                     projectName +
                                     "'));";
                         }
-
+						
                         ResultSet employees = statementPrint.executeQuery(queryString);
+						
                         while (employees.next()) {
                             String employeeName =
                                     employees.getString("Fname") +
@@ -270,4 +281,15 @@ public class EmployeeSearchFrame extends JFrame {
         contentPane.add(employeeList);
         employeeList.setViewportView(textAreaEmployee);
     }
+
+	protected void showDatabaseNotFoundError() {
+		JOptionPane.showMessageDialog(this, "Database name not found.", "Error", JOptionPane.ERROR_MESSAGE);
+	}
+	private void clearfields(){
+		textAreaEmployee.setText("");
+                lstDepartment.clearSelection();
+                lstProject.clearSelection();
+                chckbxNotDept.setSelected(false);
+                chckbxNotProject.setSelected(false);
+	}
 }
