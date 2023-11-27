@@ -115,7 +115,7 @@ public class EmployeeSearchFrame extends JFrame {
 									  dbuser, dbpassword);
 					
 						 Statement stmt = connection.createStatement()) {
-							System.out.println("this is the second connection");
+							System.out.println("this is the second connection");   		// line to be deleted
 						// Fetch department names
 						ResultSet rsDept = stmt.executeQuery("SELECT Dname FROM DEPARTMENT");
 						while (rsDept.next()) {
@@ -203,51 +203,65 @@ public class EmployeeSearchFrame extends JFrame {
 				String selectedDept = lstDepartment.getSelectedValue(); // Get the selected department
 				String selectedProj = lstProject.getSelectedValue();    // Get the selected project
 		
-				if (selectedDept == null || selectedProj == null) {
-					System.out.println("Please select both a department and a project.");
-					return;
-				}
-		
-				String sql = "SELECT DISTINCT E.Fname, E.Minit, E.Lname " +
-							 "FROM EMPLOYEE E, DEPARTMENT D, PROJECT P, WORKS_ON W " +
-							 "WHERE E.Dno = D.Dnumber " +
-							 "AND W.Pno = P.Pnumber " +
-							 "AND W.Essn = E.Ssn " +
-							 "AND D.Dname = ? " +
-							 "AND P.Pname = ?";
-		
-				try (Connection connection = DriverManager.getConnection(
-						"jdbc:mysql://cis-lonsmith-student2.ccr8ibhqw8qf.us-east-2.rds.amazonaws.com/" + databaseName + "?useSSL=false",
-						"sapkotara",
-						"abc123");
-					 PreparedStatement pstmt = connection.prepareStatement(sql)) {
-		
-					pstmt.setString(1, selectedDept);
-					pstmt.setString(2, selectedProj);
-		
-					System.out.println("Executing query: " + pstmt);
-					ResultSet rs = pstmt.executeQuery();
-					StringBuilder employeeResults = new StringBuilder();
-					while (rs.next()) {
-						employeeResults.append(rs.getString("Fname"))
-									   .append(' ')
-									   .append(rs.getString("Minit"))
-									   .append(". ")
-									   .append(rs.getString("Lname"))
-									   .append("\n");
+try (FileReader reader = new FileReader("database.props")) {
+	Properties p = new Properties();
+						p.load(reader);
+						
+						String dbdriver = p.getProperty("db.driver");
+						
+						String dbuser = p.getProperty("db.user");
+						String dbpassword = p.getProperty("db.password");
+						String dburl = p.getProperty("db.url");
+						String dbURL = String.format(dburl, databaseName);
+						Class.forName(dbdriver);
+	   
+					if (selectedDept == null || selectedProj == null) {
+						System.out.println("Please select both a department and a project.");
+						return;
 					}
-					if (employeeResults.length() == 0) {
-						System.out.println("No results found.");
-						textAreaEmployee.setText("No results found.");
-					} else {
-						textAreaEmployee.setText(employeeResults.toString());
+			
+					String sql = "SELECT DISTINCT E.Fname, E.Minit, E.Lname " +
+								 "FROM EMPLOYEE E, DEPARTMENT D, PROJECT P, WORKS_ON W " +
+								 "WHERE E.Dno = D.Dnumber " +
+								 "AND W.Pno = P.Pnumber " +
+								 "AND W.Essn = E.Ssn " +
+								 "AND D.Dname = ? " +
+								 "AND P.Pname = ?";
+			
+					try (Connection connection = DriverManager.getConnection(
+							dbURL,dbuser, dbpassword);
+						 PreparedStatement pstmt = connection.prepareStatement(sql)) {
+			
+						pstmt.setString(1, selectedDept);
+						pstmt.setString(2, selectedProj);
+			
+						System.out.println("\n\nExecuting query: " + pstmt);
+						ResultSet rs = pstmt.executeQuery();
+						StringBuilder employeeResults = new StringBuilder();
+						while (rs.next()) {
+							employeeResults.append(rs.getString("Fname"))
+										   .append(' ')
+										   .append(rs.getString("Minit"))
+										   .append(". ")
+										   .append(rs.getString("Lname"))
+										   .append("\n");
+						}
+						if (employeeResults.length() == 0) {
+							System.out.println("No results found.");
+							textAreaEmployee.setText("No results found.");
+						} else {
+							textAreaEmployee.setText(employeeResults.toString());
+						}
+						rs.close();
+			
+					} catch (SQLException ex) {
+						ex.printStackTrace();
+						System.out.println("SQL Exception: " + ex.getMessage());
 					}
-					rs.close();
-		
-				} catch (SQLException ex) {
-					ex.printStackTrace();
-					System.out.println("SQL Exception: " + ex.getMessage());
-				}
+} catch (ClassNotFoundException | IOException e1) {
+	// TODO Auto-generated catch block
+	e1.printStackTrace();
+}
 			}
 		});
 		
@@ -259,6 +273,8 @@ public class EmployeeSearchFrame extends JFrame {
 		btnClear.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				textAreaEmployee.setText("");
+				lstDepartment.clearSelection();
+				lstProject.clearSelection();
 			}
 		});
 		btnClear.setBounds(236, 276, 89, 23);
