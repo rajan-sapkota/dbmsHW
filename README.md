@@ -36,3 +36,16 @@ java -cp .:mysql-connector-java-5.1.48.jar EmployeeSearchFrame
 5. When done with searching, Click Clear to clear the result.
 
 ###
+
+
+## Example of a database.props file:
+
+db.url=jdbc:mysql://myserver.us-east-2.rds.amazonaws.com/
+db.user=user123
+db.password=password123
+db.driver=com.mysql.jdbc.Driver
+
+# Group MEMBERS:
+## RAJAN SAPKOTA
+## ROHAN CHAKRABORTY
+## KAUSHAL SHAH
